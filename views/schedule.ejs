@@ -1,0 +1,426 @@
+<% function formatTime(time) {
+    if (!time) return '--:--';
+    return time.toString().slice(0, 5);
+} %>
+
+<%- include('partials/header') %>
+
+<div class="container">
+    <header class="header">
+        <h1 class="header__title">Расписание занятий</h1>
+    </header>
+
+    <section class="filters-section">
+        <form method="GET" action="/" class="filters-form" id="scheduleForm">
+            <div class="form-group">
+                <label for="group" class="form-label">Группа</label>
+                <select id="group" name="group" class="form-select">
+                    <option value="">-- Выберите группу --</option>
+                    <% distinctGroups.forEach(group => { %>
+                        <option value="<%= group %>" <%= selectedGroup === group ? 'selected' : '' %>><%= group %></option>
+                    <% }); %>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="teacher" class="form-label">Преподаватель</label>
+                <select id="teacher" name="teacher" class="form-select">
+                    <option value="">-- Выберите преподавателя --</option>
+                    <% distinctTeachers.forEach(teacher => { %>
+                        <option value="<%= teacher %>" <%= selectedTeacher === teacher ? 'selected' : '' %>><%= teacher %></option>
+                    <% }); %>
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Показать расписание
+                </button>
+                <% if (selectedGroup || selectedTeacher) { %>
+                    <a href="/" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Сбросить
+                    </a>
+                <% } %>
+            </div>
+        </form>
+    </section>
+
+    <% if (schedule && (selectedGroup || selectedTeacher)) { %>
+        <% for (const day in schedule) { %>
+            <section class="schedule-day">
+                <h2 class="schedule-day__title"><%= day %></h2>
+                <div class="schedule-table-container">
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th class="time-column">Время</th>
+                                <% if (selectedGroup) { %>
+                                    <th class="subgroup-column">РЛ_317-2</th>
+                                    <th class="subgroup-column">2 подгруппа</th>
+                                <% } else { %>
+                                    <th class="subgroup-column">Занятия</th>
+                                <% } %>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% 
+                                const timeGroups = {};
+                                schedule[day].forEach(item => {
+                                    if (!timeGroups[item.time]) {
+                                        timeGroups[item.time] = {
+                                            time: item.time,
+                                            rl: [],
+                                            subgroup2: [],
+                                            general: []
+                                        };
+                                    }
+                                    
+                                    if (item.subgroup === '2 подгруппа') {
+                                        timeGroups[item.time].subgroup2.push(item);
+                                    } else if (item.subgroup === 'РЛ_317-2') {
+                                        timeGroups[item.time].rl.push(item);
+                                    } else {
+                                        timeGroups[item.time].general.push(item);
+                                    }
+                                });
+
+                                const sortedTimes = Object.values(timeGroups).sort((a, b) => a.time.localeCompare(b.time));
+                            %>
+                            
+                            <% sortedTimes.forEach(slot => { 
+                                const isGeneralOnly = slot.general.length > 0 && slot.rl.length === 0 && slot.subgroup2.length === 0;
+                                
+                                // Для подгрупп
+                                const rlWeek1 = slot.rl.filter(lesson => lesson.week == 1);
+                                const rlWeek2 = slot.rl.filter(lesson => lesson.week == 2);
+                                const subgroup2Week1 = slot.subgroup2.filter(lesson => lesson.week == 1);
+                                const subgroup2Week2 = slot.subgroup2.filter(lesson => lesson.week == 2);
+                                
+                                // Проверяем совпадение занятий
+                                const rlSame = rlWeek1[0] && rlWeek2[0] && 
+                                             rlWeek1[0].discipline === rlWeek2[0].discipline &&
+                                             rlWeek1[0].teachers === rlWeek2[0].teachers &&
+                                             rlWeek1[0].classrooms === rlWeek2[0].classrooms;
+                                
+                                const subgroup2Same = subgroup2Week1[0] && subgroup2Week2[0] && 
+                                                    subgroup2Week1[0].discipline === subgroup2Week2[0].discipline &&
+                                                    subgroup2Week1[0].teachers === subgroup2Week2[0].teachers &&
+                                                    subgroup2Week1[0].classrooms === subgroup2Week2[0].classrooms;
+                                
+                                // Для общих занятий
+                                const generalWeek1 = slot.general.filter(lesson => lesson.week == 1);
+                                const generalWeek2 = slot.general.filter(lesson => lesson.week == 2);
+                                const generalSame = generalWeek1[0] && generalWeek2[0] && 
+                                                  generalWeek1[0].discipline === generalWeek2[0].discipline &&
+                                                  generalWeek1[0].teachers === generalWeek2[0].teachers &&
+                                                  generalWeek1[0].classrooms === generalWeek2[0].classrooms;
+                            %>
+                                <tr>
+                                    <td class="time-cell">
+                                        <span class="time-range">
+                                            <%= formatTime(slot.time.split('-')[0]) %> - <%= formatTime(slot.time.split('-')[1]) %>
+                                        </span>
+                                    </td>
+                                    
+                                    <% if (selectedGroup) { %>
+                                        <% if (isGeneralOnly) { %>
+                                            <td colspan="2" class="general-cell">
+                                                <% if (generalSame) { %>
+                                                    <div class="lesson-card">
+                                                        <h3 class="lesson-title"><%= generalWeek1[0].discipline %></h3>
+                                                        <div class="lesson-details">
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-user-tie"></i> <%= generalWeek1[0].teachers %>
+                                                            </span>
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-door-open"></i> <%= generalWeek1[0].classrooms %>
+                                                            </span>
+                                                            <span class="detail-item combined">
+                                                                <i class="fas fa-calendar-week"></i> Недели: 1 и 2
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                <% } else { %>
+                                                    <% if (generalWeek1.length > 0) { %>
+                                                        <div class="lesson-card">
+                                                            <h3 class="lesson-title"><%= generalWeek1[0].discipline %></h3>
+                                                            <div class="lesson-details">
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-user-tie"></i> <%= generalWeek1[0].teachers %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-door-open"></i> <%= generalWeek1[0].classrooms %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-calendar-week"></i> Неделя: 1
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    <% } else { %>
+                                                        <div class="lesson-card empty-lesson">
+                                                            <span class="empty-week">Нет занятий</span>
+                                                        </div>
+                                                    <% } %>
+                                                    
+                                                    <hr class="week-divider">
+                                                    
+                                                    <% if (generalWeek2.length > 0) { %>
+                                                        <div class="lesson-card">
+                                                            <h3 class="lesson-title"><%= generalWeek2[0].discipline %></h3>
+                                                            <div class="lesson-details">
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-user-tie"></i> <%= generalWeek2[0].teachers %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-door-open"></i> <%= generalWeek2[0].classrooms %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-calendar-week"></i> Неделя: 2
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    <% } else { %>
+                                                        <div class="lesson-card empty-lesson">
+                                                            <span class="empty-week">Нет занятий</span>
+                                                        </div>
+                                                    <% } %>
+                                                <% } %>
+                                            </td>
+                                        <% } else { %>
+                                            <!-- Подгруппа РЛ_317-2 -->
+                                            <td class="subgroup-cell <%= slot.rl.length === 0 ? 'empty-cell' : '' %>">
+                                                <% if (rlSame) { %>
+                                                    <div class="lesson-card">
+                                                        <h3 class="lesson-title"><%= rlWeek1[0].discipline %></h3>
+                                                        <div class="lesson-details">
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-user-tie"></i> <%= rlWeek1[0].teachers %>
+                                                            </span>
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-door-open"></i> <%= rlWeek1[0].classrooms %>
+                                                            </span>
+                                                            <span class="detail-item combined">
+                                                                <i class="fas fa-calendar-week"></i> Недели: 1 и 2
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                <% } else { %>
+                                                    <% rlWeek1.forEach(lesson => { %>
+                                                        <div class="lesson-card">
+                                                            <h3 class="lesson-title"><%= lesson.discipline %></h3>
+                                                            <div class="lesson-details">
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-user-tie"></i> <%= lesson.teachers %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-door-open"></i> <%= lesson.classrooms %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-calendar-week"></i> Неделя: 1
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    <% }); %>
+                                                    
+                                                    <% if (rlWeek1.length > 0 && rlWeek2.length > 0) { %>
+                                                        <hr class="week-divider">
+                                                    <% } %>
+                                                    
+                                                    <% rlWeek2.forEach(lesson => { %>
+                                                        <div class="lesson-card">
+                                                            <h3 class="lesson-title"><%= lesson.discipline %></h3>
+                                                            <div class="lesson-details">
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-user-tie"></i> <%= lesson.teachers %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-door-open"></i> <%= lesson.classrooms %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-calendar-week"></i> Неделя: 2
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    <% }); %>
+                                                <% } %>
+                                            </td>
+                                            
+                                            <!-- Подгруппа 2 подгруппа -->
+                                            <td class="subgroup-cell <%= slot.subgroup2.length === 0 ? 'empty-cell' : '' %>">
+                                                <% if (subgroup2Same) { %>
+                                                    <div class="lesson-card">
+                                                        <h3 class="lesson-title"><%= subgroup2Week1[0].discipline %></h3>
+                                                        <div class="lesson-details">
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-user-tie"></i> <%= subgroup2Week1[0].teachers %>
+                                                            </span>
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-door-open"></i> <%= subgroup2Week1[0].classrooms %>
+                                                            </span>
+                                                            <span class="detail-item combined">
+                                                                <i class="fas fa-calendar-week"></i> Недели: 1 и 2
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                <% } else { %>
+                                                    <% subgroup2Week1.forEach(lesson => { %>
+                                                        <div class="lesson-card">
+                                                            <h3 class="lesson-title"><%= lesson.discipline %></h3>
+                                                            <div class="lesson-details">
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-user-tie"></i> <%= lesson.teachers %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-door-open"></i> <%= lesson.classrooms %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-calendar-week"></i> Неделя: 1
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    <% }); %>
+                                                    
+                                                    <% if (subgroup2Week1.length > 0 && subgroup2Week2.length > 0) { %>
+                                                        <hr class="week-divider">
+                                                    <% } %>
+                                                    
+                                                    <% subgroup2Week2.forEach(lesson => { %>
+                                                        <div class="lesson-card">
+                                                            <h3 class="lesson-title"><%= lesson.discipline %></h3>
+                                                            <div class="lesson-details">
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-user-tie"></i> <%= lesson.teachers %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-door-open"></i> <%= lesson.classrooms %>
+                                                                </span>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-calendar-week"></i> Неделя: 2
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    <% }); %>
+                                                <% } %>
+                                            </td>
+                                        <% } %>
+                                    <% } else { %>
+                                        <!-- Режим отображения только преподавателя -->
+                                        <td class="general-cell">
+                                            <% if (generalSame) { %>
+                                                <div class="lesson-card">
+                                                    <h3 class="lesson-title"><%= generalWeek1[0].discipline %></h3>
+                                                    <div class="lesson-details">
+                                                        <% if (generalWeek1[0].group) { %>
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-users"></i> <%= generalWeek1[0].group %>                                                                
+                                                            </span>
+                                                        <% } %>                                                      
+                                                        <span class="detail-item">
+                                                            <i class="fas fa-user-tie"></i> <%= generalWeek1[0].teachers %>
+                                                        </span>
+                                                        <span class="detail-item">
+                                                            <i class="fas fa-door-open"></i> <%= generalWeek1[0].classrooms %>
+                                                        </span>
+                                                        <span class="detail-item combined">
+                                                            <i class="fas fa-calendar-week"></i> Недели: 1 и 2
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            <% } else { %>
+                                                <% if (generalWeek1.length > 0) { %>
+                                                    <div class="lesson-card">
+                                                        <h3 class="lesson-title"><%= generalWeek1[0].discipline %></h3>
+                                                        <div class="lesson-details">
+                                                            <% if (generalWeek1[0].group) { %>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-users"></i> <%= generalWeek1[0].group %>
+                                                                </span>
+                                                            <% } %>
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-user-tie"></i> <%= generalWeek1[0].teachers %>
+                                                            </span>
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-door-open"></i> <%= generalWeek1[0].classrooms %>
+                                                            </span>
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-calendar-week"></i> Неделя: 1
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                <% } %>
+                                                
+                                                <% if (generalWeek1.length > 0 && generalWeek2.length > 0) { %>
+                                                    <hr class="week-divider">
+                                                <% } %>
+                                                
+                                                <% if (generalWeek2.length > 0) { %>
+                                                    <div class="lesson-card">
+                                                        <h3 class="lesson-title"><%= generalWeek2[0].discipline %></h3>
+                                                        <div class="lesson-details">
+                                                            <% if (generalWeek2[0].group) { %>
+                                                                <span class="detail-item">
+                                                                    <i class="fas fa-users"></i> <%= generalWeek2[0].group %>
+                                                                </span>
+                                                            <% } %>
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-user-tie"></i> <%= generalWeek2[0].teachers %>
+                                                            </span>
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-door-open"></i> <%= generalWeek2[0].classrooms %>
+                                                            </span>
+                                                            <span class="detail-item">
+                                                                <i class="fas fa-calendar-week"></i> Неделя: 2
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                <% } %>
+                                            <% } %>
+                                        </td>
+                                    <% } %>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        <% } %>
+    <% } else if (selectedGroup || selectedTeacher) { %>
+        <section class="empty-state">
+            <div class="empty-state__icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h2 class="empty-state__title">Нет данных</h2>
+            <p class="empty-state__description">По выбранным критериям занятий не найдено</p>
+        </section>
+    <% } else { %>
+        <section class="empty-state">
+            <div class="empty-state__icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h2 class="empty-state__title">Выберите параметры</h2>
+            <p class="empty-state__description">Пожалуйста, выберите группу или преподавателя для просмотра расписания</p>
+        </section>
+    <% } %>
+</div>
+
+<!-- Подключаем Font Awesome для иконок -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<link rel="stylesheet" href="/css/schedule.css">
+
+<!-- Добавляем валидацию формы -->
+<script>
+document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+    const group = document.getElementById('group').value;
+    const teacher = document.getElementById('teacher').value;
+    
+    if (!group && !teacher) {
+        e.preventDefault();
+        alert('Пожалуйста, выберите группу или преподавателя');
+        return false;
+    }
+    return true;
+});
+</script>
+</body>
+</html>

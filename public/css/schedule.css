@@ -1,0 +1,307 @@
+/* Базовые стили */
+:root {
+    --primary-color: #4285f4;
+    --secondary-color: #f1f3f4;
+    --accent-color: #34a853;
+    --danger-color: #ea4335;
+    --text-color: #202124;
+    --text-secondary: #5f6368;
+    --border-color: #dadce0;
+    --white: #ffffff;
+    --week-1-color: #e8f0fe;
+    --week-2-color: #f6f9fe;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: #f8f9fa;
+    padding: 0;
+    margin: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Шапка */
+.header {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.header__title {
+    font-size: 2.2rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* Фильтры */
+.filters-section {
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.filters-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    align-items: end;
+}
+
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.form-select {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    background-color: var(--white);
+    transition: border 0.3s, box-shadow 0.3s;
+}
+
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(66,133,244,0.2);
+    outline: none;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Кнопки */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    border: none;
+}
+
+.btn i {
+    margin-right: 8px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background-color: #3367d6;
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+}
+
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-1px);
+}
+
+/* Расписание */
+.schedule-day {
+    margin-bottom: 40px;
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.schedule-day__title {
+    font-size: 1.4rem;
+    padding: 15px 20px;
+    background-color: var(--primary-color);
+    color: var(--white);
+    margin: 0;
+}
+
+.schedule-table-container {
+    overflow-x: auto;
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.schedule-table th {
+    background-color: var(--secondary-color);
+    font-weight: 500;
+    text-align: left;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.schedule-table td {
+    padding: 0;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.time-column {
+    width: 120px;
+}
+
+.subgroup-column {
+    width: calc((100% - 120px) / 2);
+}
+
+.time-cell {
+    padding: 15px;
+    background-color: var(--secondary-color);
+}
+
+.time-range {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.subgroup-cell {
+    padding: 10px;
+}
+
+.general-cell {
+    padding: 0;
+}
+
+/* Карточки занятий */
+.lesson-card {
+    padding: 15px;
+    transition: background-color 0.3s;
+}
+
+.lesson-card:not(.empty-lesson):hover {
+    background-color: rgba(66,133,244,0.05);
+}
+
+.empty-lesson {
+    background-color: var(--secondary-color);
+}
+
+.lesson-title {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.lesson-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.detail-item {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.detail-item.combined {
+    color: #2e7d32;
+    font-weight: 500;
+}
+
+.detail-item i.fa-users {
+    color: #6a1b9a;
+}
+
+.lesson-divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 0 15px;
+}
+
+.week-divider {
+    border: none;
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 5px 0;
+}
+
+/* Состояние "нет данных" */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.empty-state__icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.empty-state__title {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.empty-state__description {
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.empty-week {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .filters-form {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        grid-column: 1 / -1;
+    }
+    
+    .header__title {
+        font-size: 1.8rem;
+    }
+    
+    .schedule-day__title {
+        font-size: 1.2rem;
+    }
+}
