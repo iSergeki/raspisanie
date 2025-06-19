@@ -6,6 +6,8 @@ const config = require('./config');
 
 const app = express();
 
+const port = process.env.PORT || 3000;
+
 // Настройка шаблонизатора
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
