@@ -1,10 +1,13 @@
 module.exports = {
-    db: {        
-        port: "3306",
-        user: "gen_user",
-        host: "188.225.27.185",
-        database: "default_db",
-        password: "qwer1234"
+    db: {
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        port: process.env.DB_PORT || 3306,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
     },
-    port: 3000
+    port: process.env.PORT || 3000
 };
