@@ -41,12 +41,12 @@ app.get('/', async (req, res) => {
 
         // Получаем уникальные группы и преподавателей
         const [groupRows] = await connection.execute(`
-            SELECT DISTINCT student_group FROM Расписание 
+            SELECT DISTINCT student_group FROM расписание 
             WHERE student_group IS NOT NULL AND student_group != ''
             ORDER BY student_group
         `);
         const [teacherRows] = await connection.execute(`
-            SELECT DISTINCT teacher FROM Расписание 
+            SELECT DISTINCT teacher FROM расписание 
             WHERE teacher IS NOT NULL AND teacher != ''
             ORDER BY teacher
         `);
@@ -79,7 +79,7 @@ app.get('/', async (req, res) => {
                     student_group AS 'Группа',
                     teacher AS 'Преподаватель',
                     classroom AS 'Аудитория'
-                FROM Расписание
+                FROM расписание
                 WHERE teacher LIKE '%${teacher.trim()}%'
                 AND start_time != '17:05'
                 ORDER BY day, start_time
@@ -97,7 +97,7 @@ app.get('/', async (req, res) => {
                     student_group AS 'Группа',
                     GROUP_CONCAT(DISTINCT teacher SEPARATOR ', ') AS Преподаватели, 
                     GROUP_CONCAT(DISTINCT classroom SEPARATOR ', ') AS Аудитории 
-                FROM Расписание 
+                FROM расписание 
                 WHERE student_group = '${group}'
                 ${teacher ? ` AND teacher LIKE '%${teacher}%'` : ''}
                 AND start_time != '17:05'
